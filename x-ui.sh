@@ -18,7 +18,7 @@ function LOGI() {
     echo -e "${green}[INF] $* ${plain}"
 }
 # check root
-[[ $EUID -ne 0 ]] && LOGE "错误:  必须使用root用户运行此脚本!\n" && exit 1
+[[ $EUID -ne 0 ]] && LOGE "Error: You must be root to run this script!\n" && exit 1
 
 # check os
 if [[ -f /etc/redhat-release ]]; then
@@ -36,7 +36,7 @@ elif cat /proc/version | grep -Eqi "ubuntu"; then
 elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
     release="centos"
 else
-    LOGE "未检测到系统版本，请联系脚本作者！\n" && exit 1
+    LOGE "System version not detected, please contact the script author！\n" && exit 1
 fi
 
 os_version=""
@@ -51,21 +51,21 @@ fi
 
 if [[ x"${release}" == x"centos" ]]; then
     if [[ ${os_version} -le 6 ]]; then
-        LOGE "请使用 CentOS 7 或更高版本的系统！\n" && exit 1
+        LOGE "please use CentOS 7 or later system!\n" && exit 1
     fi
 elif [[ x"${release}" == x"ubuntu" ]]; then
     if [[ ${os_version} -lt 16 ]]; then
-        LOGE "请使用 Ubuntu 16 或更高版本的系统！\n" && exit 1
+        LOGE "please use Ubuntu 16 or later system!\n" && exit 1
     fi
 elif [[ x"${release}" == x"debian" ]]; then
     if [[ ${os_version} -lt 8 ]]; then
-        LOGE "请使用 Debian 8 或更高版本的系统！\n" && exit 1
+        LOGE "please use Debian 8 or later system!\n" && exit 1
     fi
 fi
 
 confirm() {
     if [[ $# > 1 ]]; then
-        echo && read -p "$1 [默认$2]: " temp
+        echo && read -p "$1 [default$2]: " temp
         if [[ x"${temp}" == x"" ]]; then
             temp=$2
         fi
@@ -80,7 +80,7 @@ confirm() {
 }
 
 confirm_restart() {
-    confirm "是否重启面板，重启面板也会重启 xray" "y"
+    confirm "Whether to restart the panel, restarting the panel will also restart xray" "y"
     if [[ $? == 0 ]]; then
         restart
     else
@@ -89,7 +89,7 @@ confirm_restart() {
 }
 
 before_show_menu() {
-    echo && echo -n -e "${yellow}按回车返回主菜单: ${plain}" && read temp
+    echo && echo -n -e "${yellow}Press enter to return to the main menu: ${plain}" && read temp
     show_menu
 }
 
@@ -105,7 +105,7 @@ install() {
 }
 
 update() {
-    confirm "本功能会强制重装当前最新版，数据不会丢失，是否继续?" "n"
+    confirm "This function will force the latest version to be reinstalled, and the data will not be lost. Do you want to continue?" "n"
     if [[ $? != 0 ]]; then
         LOGE "已取消"
         if [[ $# == 0 ]]; then
@@ -115,13 +115,13 @@ update() {
     fi
     bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
     if [[ $? == 0 ]]; then
-        LOGI "更新完成，已自动重启面板 "
+        LOGI "The update is complete, the panel has been automatically restarted "
         exit 0
     fi
 }
 
 uninstall() {
-    confirm "确定要卸载面板吗,xray 也会卸载?" "n"
+    confirm "Are you sure you want to uninstall the panel, xray will also uninstall?" "n"
     if [[ $? != 0 ]]; then
         if [[ $# == 0 ]]; then
             show_menu
@@ -137,7 +137,7 @@ uninstall() {
     rm /usr/local/x-ui/ -rf
 
     echo ""
-    echo -e "卸载成功，如果你想删除此脚本，则退出脚本后运行 ${green}rm /usr/bin/x-ui -f${plain} 进行删除"
+    echo -e "The uninstallation is successful, if you want to delete this script, run after exiting the script ${green}rm /usr/bin/x-ui -f${plain} to delete"
     echo ""
 
     if [[ $# == 0 ]]; then
@@ -146,7 +146,7 @@ uninstall() {
 }
 
 reset_user() {
-    confirm "确定要将用户名和密码重置为 admin 吗" "n"
+    confirm "Are you sure you want to reset username and password to admin" "n"
     if [[ $? != 0 ]]; then
         if [[ $# == 0 ]]; then
             show_menu
@@ -154,12 +154,12 @@ reset_user() {
         return 0
     fi
     /usr/local/x-ui/x-ui setting -username admin -password admin
-    echo -e "用户名和密码已重置为 ${green}admin${plain}，现在请重启面板"
+    echo -e "Username and password have been reset to ${green}admin${plain}, please restart the panel now"
     confirm_restart
 }
 
 reset_config() {
-    confirm "确定要重置所有面板设置吗，账号数据不会丢失，用户名和密码不会改变" "n"
+    confirm "Are you sure you want to reset all panel settings, account data will not be lost, username and password will not be changed" "n"
     if [[ $? != 0 ]]; then
         if [[ $# == 0 ]]; then
             show_menu
@@ -167,7 +167,7 @@ reset_config() {
         return 0
     fi
     /usr/local/x-ui/x-ui setting -reset
-    echo -e "所有面板设置已重置为默认值，现在请重启面板，并使用默认的 ${green}54321${plain} 端口访问面板"
+    echo -e "All panel settings have been reset to default, please restart the panel now and use the default ${green}54321${plain} Port Access Panel"
     confirm_restart
 }
 
@@ -181,13 +181,13 @@ check_config() {
 }
 
 set_port() {
-    echo && echo -n -e "输入端口号[1-65535]: " && read port
+    echo && echo -n -e "Enter the port number[1-65535]: " && read port
     if [[ -z "${port}" ]]; then
         LOGD "已取消"
         before_show_menu
     else
         /usr/local/x-ui/x-ui setting -port ${port}
-        echo -e "设置端口完毕，现在请重启面板，并使用新设置的端口 ${green}${port}${plain} 访问面板"
+        echo -e "After setting the port, please restart the panel and use the newly set port ${green}${port}${plain} access panel"
         confirm_restart
     fi
 }
@@ -196,15 +196,15 @@ start() {
     check_status
     if [[ $? == 0 ]]; then
         echo ""
-        LOGI "面板已运行，无需再次启动，如需重启请选择重启"
+        LOGI "The panel is already running, no need to restart, if you want to restart, please select restart"
     else
         systemctl start x-ui
         sleep 2
         check_status
         if [[ $? == 0 ]]; then
-            LOGI "x-ui 启动成功"
+            LOGI "x-ui Started successfully"
         else
-            LOGE "面板启动失败，可能是因为启动时间超过了两秒，请稍后查看日志信息"
+            LOGE "The panel failed to start, maybe because the startup time exceeded two seconds, please check the log information later"
         fi
     fi
 
@@ -217,15 +217,15 @@ stop() {
     check_status
     if [[ $? == 1 ]]; then
         echo ""
-        LOGI "面板已停止，无需再次停止"
+        LOGI "Panel has stopped, no need to stop again"
     else
         systemctl stop x-ui
         sleep 2
         check_status
         if [[ $? == 1 ]]; then
-            LOGI "x-ui 与 xray 停止成功"
+            LOGI "x-ui and xray stop successfully"
         else
-            LOGE "面板停止失败，可能是因为停止时间超过了两秒，请稍后查看日志信息"
+            LOGE "The panel failed to stop, maybe because the stop time exceeded two seconds, please check the log information later"
         fi
     fi
 
@@ -239,9 +239,9 @@ restart() {
     sleep 2
     check_status
     if [[ $? == 0 ]]; then
-        LOGI "x-ui 与 xray 重启成功"
+        LOGI "x-ui and xray restarted successfully"
     else
-        LOGE "面板重启失败，可能是因为启动时间超过了两秒，请稍后查看日志信息"
+        LOGE "The panel failed to restart, maybe because the startup time exceeded two seconds, please check the log information later"
     fi
     if [[ $# == 0 ]]; then
         before_show_menu
@@ -258,9 +258,9 @@ status() {
 enable() {
     systemctl enable x-ui
     if [[ $? == 0 ]]; then
-        LOGI "x-ui 设置开机自启成功"
+        LOGI "x-ui Set the boot to start successfully"
     else
-        LOGE "x-ui 设置开机自启失败"
+        LOGE "x-ui Failed to set auto-start at boot"
     fi
 
     if [[ $# == 0 ]]; then
@@ -271,9 +271,9 @@ enable() {
 disable() {
     systemctl disable x-ui
     if [[ $? == 0 ]]; then
-        LOGI "x-ui 取消开机自启成功"
+        LOGI "x-ui Cancel the boot auto-start successfully"
     else
-        LOGE "x-ui 取消开机自启失败"
+        LOGE "x-ui Failed to cancel the boot auto-start"
     fi
 
     if [[ $# == 0 ]]; then
@@ -305,11 +305,11 @@ update_shell() {
     wget -O /usr/bin/x-ui -N --no-check-certificate https://github.com/vaxilu/x-ui/raw/master/x-ui.sh
     if [[ $? != 0 ]]; then
         echo ""
-        LOGE "下载脚本失败，请检查本机能否连接 Github"
+        LOGE "The download script failed, please check whether the machine can be connected Github"
         before_show_menu
     else
         chmod +x /usr/bin/x-ui
-        LOGI "升级脚本成功，请重新运行脚本" && exit 0
+        LOGI "The upgrade script was successful, please rerun the script" && exit 0
     fi
 }
 
@@ -339,7 +339,7 @@ check_uninstall() {
     check_status
     if [[ $? != 2 ]]; then
         echo ""
-        LOGE "面板已安装，请不要重复安装"
+        LOGE "The panel is already installed, please do not install it again"
         if [[ $# == 0 ]]; then
             before_show_menu
         fi
@@ -353,7 +353,7 @@ check_install() {
     check_status
     if [[ $? == 2 ]]; then
         echo ""
-        LOGE "请先安装面板"
+        LOGE "Please install the panel first"
         if [[ $# == 0 ]]; then
             before_show_menu
         fi
@@ -367,15 +367,15 @@ show_status() {
     check_status
     case $? in
     0)
-        echo -e "面板状态: ${green}已运行${plain}"
+        echo -e "Panel status: ${green}Running${plain}"
         show_enable_status
         ;;
     1)
-        echo -e "面板状态: ${yellow}未运行${plain}"
+        echo -e "Panel status: ${yellow}Not running${plain}"
         show_enable_status
         ;;
     2)
-        echo -e "面板状态: ${red}未安装${plain}"
+        echo -e "Panel status: ${red}Not installed${plain}"
         ;;
     esac
     show_xray_status
@@ -384,9 +384,9 @@ show_status() {
 show_enable_status() {
     check_enabled
     if [[ $? == 0 ]]; then
-        echo -e "是否开机自启: ${green}是${plain}"
+        echo -e "Start automatically: ${green}Yes${plain}"
     else
-        echo -e "是否开机自启: ${red}否${plain}"
+        echo -e "Start automatically: ${red}No${plain}"
     fi
 }
 
@@ -402,11 +402,15 @@ check_xray_status() {
 show_xray_status() {
     check_xray_status
     if [[ $? == 0 ]]; then
-        echo -e "xray 状态: ${green}运行${plain}"
+        echo -e "xray status: ${green}Running${plain}"
     else
-        echo -e "xray 状态: ${red}未运行${plain}"
+        echo -e "xray status: ${red}Not running${plain}"
     fi
 }
+
+
+
+# ############################################################################
 
 ssl_cert_issue() {
     echo -E ""
@@ -482,53 +486,54 @@ ssl_cert_issue() {
         show_menu
     fi
 }
+# ############################################################################
 
 show_usage() {
-    echo "x-ui 管理脚本使用方法: "
+    echo "x-ui Management script usage: "
     echo "------------------------------------------"
-    echo "x-ui              - 显示管理菜单 (功能更多)"
-    echo "x-ui start        - 启动 x-ui 面板"
-    echo "x-ui stop         - 停止 x-ui 面板"
-    echo "x-ui restart      - 重启 x-ui 面板"
-    echo "x-ui status       - 查看 x-ui 状态"
-    echo "x-ui enable       - 设置 x-ui 开机自启"
-    echo "x-ui disable      - 取消 x-ui 开机自启"
-    echo "x-ui log          - 查看 x-ui 日志"
-    echo "x-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 x-ui"
-    echo "x-ui update       - 更新 x-ui 面板"
-    echo "x-ui install      - 安装 x-ui 面板"
-    echo "x-ui uninstall    - 卸载 x-ui 面板"
+    echo "x-ui              - Show the management menu"
+    echo "x-ui start        - Start panel"
+    echo "x-ui stop         - Stop panel"
+    echo "x-ui restart      - Restart panel"
+    echo "x-ui status       - View panel status"
+    echo "x-ui enable       - Enable panel service"
+    echo "x-ui disable      - Disable panel service"
+    echo "x-ui log          - Check panel log"
+    echo "x-ui v2-ui        - Switch v2-ui to x-ui"
+    echo "x-ui update       - Update panel"
+    echo "x-ui install      - Install panel"
+    echo "x-ui uninstall    - Uninstall panel"
     echo "------------------------------------------"
 }
 
 show_menu() {
     echo -e "
-  ${green}x-ui 面板管理脚本${plain}
-  ${green}0.${plain} 退出脚本
+  ${green}x-ui Panel management script${plain}
+  ${green}0.${plain} Exit script
 ————————————————
-  ${green}1.${plain} 安装 x-ui
-  ${green}2.${plain} 更新 x-ui
-  ${green}3.${plain} 卸载 x-ui
+  ${green}1.${plain} Install x-ui
+  ${green}2.${plain} Update x-ui
+  ${green}3.${plain} Uninstall x-ui
 ————————————————
-  ${green}4.${plain} 重置用户名密码
-  ${green}5.${plain} 重置面板设置
-  ${green}6.${plain} 设置面板端口
-  ${green}7.${plain} 查看当前面板设置
+  ${green}4.${plain} Reset username password
+  ${green}5.${plain} Reset panel settings
+  ${green}6.${plain} Set up panel port
+  ${green}7.${plain} View current panel settings
 ————————————————
-  ${green}8.${plain} 启动 x-ui
-  ${green}9.${plain} 停止 x-ui
-  ${green}10.${plain} 重启 x-ui
-  ${green}11.${plain} 查看 x-ui 状态
-  ${green}12.${plain} 查看 x-ui 日志
+  ${green}8.${plain} Start Panel
+  ${green}9.${plain} Stop Panel
+  ${green}10.${plain} Restart Panel
+  ${green}11.${plain} Check Panel status
+  ${green}12.${plain} Check Panel Log
 ————————————————
-  ${green}13.${plain} 设置 x-ui 开机自启
-  ${green}14.${plain} 取消 x-ui 开机自启
+  ${green}13.${plain} Set Panel auto start at boot
+  ${green}14.${plain} Stop Panel auto start at boot
 ————————————————
-  ${green}15.${plain} 一键安装 bbr (最新内核)
-  ${green}16.${plain} 一键申请SSL证书(acme申请)
+  ${green}15.${plain} Install bbr (The latest kernel)
+  ${green}16.${plain} One-click application SSL certificate(Acme Certbot)
  "
     show_status
-    echo && read -p "请输入选择 [0-16]: " num
+    echo && read -p "Please enter the selection [0-16]: " num
 
     case "${num}" in
     0)
@@ -583,7 +588,7 @@ show_menu() {
         ssl_cert_issue
         ;;
     *)
-        LOGE "请输入正确的数字 [0-16]"
+        LOGE "Please enter the correct number [0-16]"
         ;;
     esac
 }
